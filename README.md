@@ -1,8 +1,9 @@
 # Highly Scalable URL Shortener
 
-A production-grade URL shortener web service built with Java 21, Spring Boot 3, PostgreSQL, and Redis. It operates with ultra-low latency, handles high throughput, and correctly implements IP-based rate limiting as well as click tracking analytics.
+A production-grade URL shortener web service built with Java 21, Spring Boot 3, PostgreSQL, Redis, and a **React** frontend. It operates with ultra-low latency, handles high throughput, and correctly implements IP-based rate limiting as well as click tracking analytics.
 
 ## Tech Stack
+- **Frontend:** React 18, Vite
 - **Backend:** Java 21, Spring Boot 3.2.4
 - **Database:** PostgreSQL (via Spring Data JPA)
 - **Cache & Rate Limiting:** Redis (via Spring Data Redis)
@@ -13,6 +14,7 @@ A production-grade URL shortener web service built with Java 21, Spring Boot 3, 
 - **Microsecond Latency Redirects:** Employs a Cache-Aside pattern powered by Redis (`StringRedisTemplate`), fetching and delivering 302 redirects with p99 < 5ms.
 - **Asynchronous Analytics:** Offloads click tracking (IP, User-Agent, Timestamp) to a dedicated `ThreadPoolTaskExecutor` ensuring analytics never block the user's redirect.
 - **Rate Limiting:** Defends against abuse with a lightweight Token Bucket algorithm directly within Redis, rate-limiting IPs to 10 requests / minute globally.
+- **Modern React UI:** Dark-mode glassmorphism interface with copy-to-clipboard, real-time analytics dashboard, and responsive design.
 
 ## Setup & Running
 
@@ -20,16 +22,27 @@ This project leverages Docker Compose for seamless orchestration.
 
 ### Prerequisites
 - Docker & Docker Compose
+- Node.js 18+ & npm (for frontend development)
 - Java 21 (optional, if building manually)
 
-### Run with Docker Compose
+### Run Backend with Docker Compose
 To boot up the PostgreSQL, Redis, and Spring App components simultaneously:
 
 ```bash
 docker-compose up -d --build
 ```
 
-The application will bind to `localhost:8080`.
+The backend API will bind to `localhost:8080`.
+
+### Run Frontend (Development)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The React app will start at `http://localhost:5173` and proxy API requests to the backend on port 8080.
 
 ## API Documentation
 
@@ -84,4 +97,30 @@ Retrieves click activity for a specified code.
         }
     ]
 }
+```
+
+## Project Structure
+
+```
+├── src/                    # Spring Boot backend
+│   └── main/java/com/urlshortener/
+│       ├── config/         # CORS, Async, WebMvc configs
+│       ├── controller/     # REST controllers
+│       ├── dto/            # Request/Response records
+│       ├── entity/         # JPA entities
+│       ├── exception/      # Global error handling
+│       ├── interceptor/    # Rate limiting interceptor
+│       ├── repository/     # Spring Data repositories
+│       └── service/        # Business logic
+├── frontend/               # React (Vite) frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── api.js          # API client
+│   │   ├── App.jsx         # Root component
+│   │   └── index.css       # Design system
+│   ├── index.html
+│   └── vite.config.js      # Vite config with API proxy
+├── Dockerfile
+├── docker-compose.yml
+└── pom.xml
 ```
